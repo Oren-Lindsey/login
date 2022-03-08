@@ -14,3 +14,8 @@ https://github.com/Oren-Lindsey/login/blob/be5aab0769eaefdfc25348e912e528a1bfe5f
 to the secret.
 
 To run, enter this in the console: `node index.js`
+
+## Todo:
+- Implement apis and frontend for editing user data
+- make admins actually have control over other users
+- Make user pages
