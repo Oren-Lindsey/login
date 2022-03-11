@@ -1,4 +1,4 @@
-# login-test
+# Login
 Login system with token handling and frontend. To see it in action vist [this link](https://login-test.s40.repl.co)
 
 ## Setup
