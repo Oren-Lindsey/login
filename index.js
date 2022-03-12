@@ -64,9 +64,7 @@ app.post('/session', async (req, res) => {
 app.get('/logged-in', authenticateToken, (req, res) => {
   var userData = []
   userData.username = req.user.username
-  ejs.renderFile(__dirname + '/public/html/logged-in.html', userData, function(err, str){
-      res.send(str);
-    });
+  res.sendFile(__dirname + '/public/html/logged-in.html')
 })
 
 app.get('/account-created', (req, res) => {
