@@ -50,7 +50,7 @@ app.post('/session', async (req, res) => {
   } else {
     passwordCheck = await isPasswordCorrect(doc.password, reqData.password)
     if (passwordCheck) {
-      console.log('USER LOGGED IN SUCCESSFULLY!!!!!!!!!')
+      console.log('user logged in successfully')
       var userData = {'username': reqData.username}
       const token = generateAccessToken({ username: reqData.username });
       res.set('Set-Cookie', `token=${token}`)
@@ -62,9 +62,26 @@ app.post('/session', async (req, res) => {
 })
 
 app.get('/logged-in', authenticateToken, (req, res) => {
-  var userData = []
-  userData.username = req.user.username
-  res.sendFile(__dirname + '/public/html/logged-in.html')
+  if (req.isUserLoggedIn) {
+    var userData = []
+    userData.username = req.user.username
+    res.sendFile(__dirname + '/public/html/logged-in.html')
+  } else if (!req.isUserLoggedIn) {
+    res.sendFile(__dirname + '/public/html/403.html')
+  } else {
+    res.send('a,dvghamdc')
+  }
+})
+
+app.get('/session', authenticateToken, async (req, res) => {
+  if (req.isUserLoggedIn) {
+    var doc = await getUserFromDb(req.user.username)
+    delete doc.__v
+    delete doc.password
+    res.send(doc)
+  } else {
+    res.status(401).send({'error': 'not logged in'})
+  }
 })
 
 app.get('/account-created', (req, res) => {
@@ -72,7 +89,7 @@ app.get('/account-created', (req, res) => {
 })
 
 app.listen(port, () => {
-  console.log(`Example app listening at https://login-test.s40.repl.co`)
+  console.log(`Example app listening at https://login.s40.repl.co`)
 })
 
 async function hashPassword(password) {
@@ -113,14 +130,20 @@ function generateAccessToken(username) {
 function authenticateToken(req, res, next) {
   const token = req.cookies['authorization']
 
-  if (token == null) return res.sendStatus(401)
-  const secretAsString = token_secret // as string
-  jwt.verify(token, token_secret, (err, user) => {
-    if (err) {
-      return res.sendStatus(403)
-    } else {
-      req.user = user
-      next()
-    }
-  })
+  if (token == null) {
+    req.isUserLoggedIn = false
+    next()
+  } else {
+    const secretAsString = token_secret // as string
+    jwt.verify(token, token_secret, (err, user) => {
+      if (err) {
+        req.isUserLoggedIn = false
+        next()
+      } else {
+        req.isUserLoggedIn = true
+        req.user = user
+        next()
+      }
+    })
+  }
 }
