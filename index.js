@@ -20,8 +20,12 @@ app.use(cookieParser());
 
 app.use(express.static('public'))
 
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/html/index.html');
+app.get('/', authenticateToken, (req, res) => {
+  if (req.isUserLoggedIn) {
+    res.sendFile(__dirname + '/public/html/logged-in.html')
+  } else {
+    res.sendFile(__dirname + '/public/html/index.html');
+  }
 })
 
 app.get('/login', (req, res) => {
@@ -33,13 +37,18 @@ app.get('/new-account', (req, res) => {
 })
 
 app.post('/create-account', (req, res) => {
-  var userdata = {
-    username: req.body.username,
-    password: req.body.password
+  const usernameCheck = /^[a-z0-9_\\-]{1,20}$/;
+  if(usernameCheck.test(req.body.username)) {
+    var userdata = {
+      username: req.body.username,
+      password: req.body.password
+    }
+    addUserToDb(req.body.username, req.body.password, true, false)
+    const token = generateAccessToken({ username: req.body.username });
+    res.send({'message': 'user created', 'token': token, 'data': userdata})
+  } else {
+    res.status(400).send({'error':'must match regex /^[a-z0-9_\\-]{1,20}$/'})
   }
-  addUserToDb(req.body.username, req.body.password, true, false)
-  const token = generateAccessToken({ username: req.body.username });
-  res.send({'message': 'user created', 'token': token, 'data': userdata})
 })
 
 app.post('/session', async (req, res) => {
@@ -61,18 +70,6 @@ app.post('/session', async (req, res) => {
   }
 })
 
-app.get('/logged-in', authenticateToken, (req, res) => {
-  if (req.isUserLoggedIn) {
-    var userData = []
-    userData.username = req.user.username
-    res.sendFile(__dirname + '/public/html/logged-in.html')
-  } else if (!req.isUserLoggedIn) {
-    res.sendFile(__dirname + '/public/html/403.html')
-  } else {
-    res.send('a,dvghamdc')
-  }
-})
-
 app.get('/session', authenticateToken, async (req, res) => {
   if (req.isUserLoggedIn) {
     var doc = await getUserFromDb(req.user.username)
@@ -89,7 +86,7 @@ app.get('/account-created', (req, res) => {
 })
 
 app.listen(port, () => {
-  console.log(`Example app listening at https://login.s40.repl.co`)
+  console.log(`listening`)
 })
 
 async function hashPassword(password) {
@@ -134,7 +131,6 @@ function authenticateToken(req, res, next) {
     req.isUserLoggedIn = false
     next()
   } else {
-    const secretAsString = token_secret // as string
     jwt.verify(token, token_secret, (err, user) => {
       if (err) {
         req.isUserLoggedIn = false
