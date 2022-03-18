@@ -20,7 +20,7 @@ function formSubmit(event) {
         headers: { 'Content-Type': 'application/json' },
         body: stringifiedData
     };
-  fetch('https://login-test.s40.repl.co/session', requestOptions)
+  fetch('/session', requestOptions)
     .then(res => res.json())
     .then(data => loginRes(data))
   event.preventDefault();
@@ -32,9 +32,9 @@ function loginRes(data) {
       error.removeAttribute('hidden');
     }
   } else {
-    message.innerText = 'Logged in successfully!'
+    message.innerText = 'Logged in successfully, please wait...'
     message.removeAttribute('hidden');
     document.cookie = `authorization=${data.token}`
-    window.location.replace('/logged-in')
+    window.location.replace('/')
   }
 }
