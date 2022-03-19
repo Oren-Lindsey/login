@@ -32,6 +32,9 @@ function handleRes(data) {
     if (data.error == 'must match regex /^[a-z0-9_\\-]{1,20}$/') {
       error.innerText = 'Error! usernames must be between 1 and 20 characters long and can only contain letters, numbers, underscores, and dashes.'
       error.removeAttribute('hidden')
+    } else if (data.error == 'user already exists') {
+      error.innerText = 'Error! User already exists.'
+      error.removeAttribute('hidden')
     } else {
       error.innerText = data.error
       error.removeAttribute('hidden')
