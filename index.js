@@ -36,16 +36,21 @@ app.get('/new-account', (req, res) => {
   res.sendFile(__dirname + '/public/html/new-account.html');
 })
 
-app.post('/create-account', (req, res) => {
+app.post('/create-account', async (req, res) => {
   const usernameCheck = /^[a-z0-9_\\-]{1,20}$/;
-  if(usernameCheck.test(req.body.username)) {
+  if (usernameCheck.test(req.body.username)) {
     var userdata = {
       username: req.body.username,
       password: req.body.password
     }
-    addUserToDb(req.body.username, req.body.password, true, false)
-    const token = generateAccessToken({ username: req.body.username });
-    res.send({'message': 'user created', 'token': token, 'data': userdata})
+    const exists = await checkIfUserExists(req.body.username)
+    if (!exists) {
+      addUserToDb(req.body.username, req.body.password, false, false)
+      const token = generateAccessToken({ username: req.body.username });
+      res.send({'message': 'user created', 'token': token, 'data': userdata})
+    } else {
+      res.status(409).send({'error': 'user already exists'})
+    }
   } else {
     res.status(400).send({'error':'must match regex /^[a-z0-9_\\-]{1,20}$/'})
   }
@@ -141,5 +146,15 @@ function authenticateToken(req, res, next) {
         next()
       }
     })
+  }
+}
+
+async function checkIfUserExists(name) {
+  await mongoose.connect(db_url);
+  var doc = await User.exists({name: name})
+  if (doc !== null) {
+    return true
+  } else {
+    return false
   }
 }
