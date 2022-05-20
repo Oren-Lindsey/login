@@ -1,5 +1,6 @@
+## IMPORTANT: this is not really being worked on anymore, I've kinda moved to sveltekit (it's way better btw)
 # Login
-Login system with token handling and frontend. To see it in action vist [this link](https://login-test.s40.repl.co)
+Login system with token handling and frontend. To see it in action vist [this link](https://login.s40.repl.co)
 
 ## Setup
 This requires mongodb. The demo is using mongodb atlas but you can use your own instance as well.
